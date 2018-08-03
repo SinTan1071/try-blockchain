@@ -66,3 +66,49 @@ func (b *Bucket) ForEach(fn func(key, value []byte) error) error {
 	}
 	return nil
 }
+
+func (b *Bucket) ForEachKeyOnly(fn func(key []byte) error) error {
+	opts := badger.DefaultIteratorOptions
+	opts.PrefetchValues = false
+	iterator := b.tx.Txn.NewIterator(opts)
+	defer iterator.Close()
+	prefix := b.bukcetID[:]
+	for iterator.Seek(prefix); iterator.ValidForPrefix(prefix); iterator.Next() {
+		var p1 []byte
+		p1 = append(p1, iterator.Item().Key()[4:]...)
+		err := fn(p1)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *Bucket) ForEachKeyOnlyForPrefix(inPrefix []byte, fn func(key []byte) error) error {
+	opts := badger.DefaultIteratorOptions
+	opts.PrefetchValues = false
+	iterator := b.tx.Txn.NewIterator(opts)
+	defer iterator.Close()
+	prefix := append(b.bukcetID[:], inPrefix...)
+	for iterator.Seek(prefix); iterator.ValidForPrefix(prefix); iterator.Next() {
+		var p1 []byte
+		p1 = append(p1, iterator.Item().Key()[4:]...)
+		err := fn(p1)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *Bucket) Exist(key []byte) (bool, error) {
+	_, err := b.Get(key)
+	if err != nil {
+		if err == badger.ErrKeyNotFound {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+	return true, nil
+}
