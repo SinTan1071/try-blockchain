@@ -26,6 +26,8 @@ func TestLRU(t *testing.T) {
 	time.Sleep(20 * time.Second)
 	fmt.Println("Is A alive", lru.IsAlive("A"))
 	fmt.Println("Is B alive", lru.IsAlive("B"))
+	fmt.Println("list before remove A", lru.list[100-lru.time_flag])
 	lru.Remove("A")
+	fmt.Println("list after remove A", lru.list[100-lru.time_flag])
 	//lru.Stop()
 }
